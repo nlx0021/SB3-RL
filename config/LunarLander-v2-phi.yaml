@@ -3,7 +3,7 @@ world:
   exp_dir: "./exp/LunarLander-v2"
 
 train:
-  total_timesteps: 1000000
+  total_timesteps: 10000000
   log_interval: 10
 
 env:
@@ -15,13 +15,13 @@ alg: "PhiUpdate"
 algo:
   policy: "MlpPolicy"
   eta: 1
-  learning_rate: 0.0003
+  learning_rate: 0.0001
   n_steps: 16
   batch_size: 64
   n_epochs: 10
   gamma: 0.99
   gae_lambda: 0.95
-  normalize_advantage: True
+  normalize_advantage: False
   max_grad_norm: 0.5
   ent_coef: 0
   vf_coef: 1
