@@ -12,7 +12,7 @@ from utils.function_bank import get_phi
 
 if __name__ == '__main__':
     
-    conf_path = "config/LunarLander-v2-phi.yaml"
+    conf_path = "config/Cartpole-v1-PPO.yaml"
     
     with open(conf_path, 'r', encoding="utf-8") as f:
         kwargs = yaml.load(f.read(), Loader=yaml.FullLoader)       
@@ -20,10 +20,10 @@ if __name__ == '__main__':
     torch.set_num_threads(kwargs["world"]["threads_num"])
     
     exp_dir = kwargs["world"]["exp_dir"]
-    save_dir = os.path.join(exp_dir, str(int(time.time())))
+    save_dir = os.path.join(exp_dir, kwargs["world"].get("exp_name", str(int(time.time()))))
     log_dir = os.path.join(save_dir, "log")
     ckpt_dir = os.path.join(save_dir, "ckpt")
-    os.makedirs(save_dir)
+    os.makedirs(save_dir, exist_ok=False)
     os.makedirs(log_dir)
     os.makedirs(ckpt_dir)
     cfg_path = os.path.join(save_dir, "config.yaml")
@@ -34,9 +34,9 @@ if __name__ == '__main__':
     env = make_vec_env(**kwargs["env"])
 
     algo_id = kwargs["alg"]
-    if algo_id == "PhiUpdate":
+    if algo_id in ["PhiUpdate", "PhiPPO"]:
         phi = get_phi(**kwargs["phi"])
-        model = PhiUpdate(**kwargs["algo"], phi=phi, env=env, verbose=1, tensorboard_log=log_dir)
+        model = ALGO[algo_id](**kwargs["algo"], phi=phi, env=env, verbose=1, tensorboard_log=log_dir)
     else:
         model = ALGO[algo_id](**kwargs["algo"], env=env, verbose=1, tensorboard_log=log_dir)
     

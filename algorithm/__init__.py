@@ -10,6 +10,7 @@ from stable_baselines3.sac import SAC
 from stable_baselines3.td3 import TD3
 
 from algorithm.phi_update import PhiUpdate
+from algorithm.phi_PPO import PhiPPO
 
 __all__ = [
     "A2C",
@@ -18,7 +19,8 @@ __all__ = [
     "PPO",
     "SAC",
     "TD3",
-    "PhiUpdate"
+    "PhiUpdate",
+    "PhiPPO",
     "HerReplayBuffer",
     "get_system_info",
 ]
@@ -30,5 +32,6 @@ ALGO = {
     "PPO": PPO,
     "SAC": SAC,
     "TD3": TD3,
-    "PhiUpdate": PhiUpdate
+    "PhiUpdate": PhiUpdate,
+    "PhiPPO": PhiPPO
 }

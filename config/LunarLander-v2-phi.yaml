@@ -1,9 +1,10 @@
 world:
   threads_num: 32
   exp_dir: "./exp/LunarLander-v2"
+  exp_name: "Phi-log-fixed-power-3-5-vf-.1"
 
 train:
-  total_timesteps: 10000000
+  total_timesteps: 2000000
   log_interval: 10
 
 env:
@@ -24,10 +25,10 @@ algo:
   normalize_advantage: False
   max_grad_norm: 0.5
   ent_coef: 0
-  vf_coef: 1
+  vf_coef: .1
   kl_coef: 1
 
 phi:
-  name: "power"
-  p: 5
-  q: 3
+  name: "fixed-power"
+  p: 3
+  q: 5

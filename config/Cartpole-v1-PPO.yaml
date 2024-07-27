@@ -1,14 +1,14 @@
 world:
   threads_num: 32
-  exp_dir: "./exp/LunarLander-v2"
-  exp_name: "PPO-baseline"
+  exp_dir: "./exp/Cartpole-v1"
+  exp_name: "PPO-normalize-adv"
 
 train:
   total_timesteps: 2000000
   log_interval: 10
 
 env:
-  env_id: "LunarLander-v2"
+  env_id: "CartPole-v1"
   n_envs: 32
 
 alg: "PPO"
@@ -22,7 +22,7 @@ algo:
   gamma: 0.99
   gae_lambda: 0.95
   clip_range: 0.2
-  normalize_advantage: False
+  normalize_advantage: True
   max_grad_norm: 0.5
   ent_coef: 0.001
   vf_coef: 1

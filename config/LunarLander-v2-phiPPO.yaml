@@ -1,7 +1,7 @@
 world:
   threads_num: 32
   exp_dir: "./exp/LunarLander-v2"
-  exp_name: "PPO-baseline"
+  exp_name: "PhiPPO-power-1-1-baseline"
 
 train:
   total_timesteps: 2000000
@@ -11,18 +11,24 @@ env:
   env_id: "LunarLander-v2"
   n_envs: 32
 
-alg: "PPO"
+alg: "PhiPPO"
 
 algo:
   policy: "MlpPolicy"
+  eta: 1
   learning_rate: 0.0001
+  clip_range: 0.2
   n_steps: 16
   batch_size: 64
   n_epochs: 10
   gamma: 0.99
   gae_lambda: 0.95
-  clip_range: 0.2
   normalize_advantage: False
   max_grad_norm: 0.5
-  ent_coef: 0.001
+  ent_coef: 0
   vf_coef: 1
+
+phi:
+  name: "power"
+  p: 1
+  q: 1

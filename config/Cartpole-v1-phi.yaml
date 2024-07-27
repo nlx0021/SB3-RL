@@ -1,28 +1,34 @@
 world:
   threads_num: 32
-  exp_dir: "./exp/LunarLander-v2"
-  exp_name: "PPO-baseline"
+  exp_dir: "./exp/Cartpole-v1"
+  exp_name: "Phi-power-3-5-normalize-adv"
 
 train:
   total_timesteps: 2000000
   log_interval: 10
 
 env:
-  env_id: "LunarLander-v2"
+  env_id: "CartPole-v1"
   n_envs: 32
 
-alg: "PPO"
+alg: "PhiUpdate"
 
 algo:
   policy: "MlpPolicy"
+  eta: 1
   learning_rate: 0.0001
   n_steps: 16
   batch_size: 64
   n_epochs: 10
   gamma: 0.99
   gae_lambda: 0.95
-  clip_range: 0.2
-  normalize_advantage: False
+  normalize_advantage: True
   max_grad_norm: 0.5
-  ent_coef: 0.001
+  ent_coef: 0
   vf_coef: 1
+  kl_coef: 1
+
+phi:
+  name: "power"
+  p: 3
+  q: 5

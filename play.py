@@ -18,7 +18,7 @@ if __name__ == '__main__':
     env = gym.make(kwargs["env"]["env_id"], render_mode="human") 
     
     ckpt_path = "exp\\LunarLander-v2\\Phi-power-5-3-baseline\\ckpt\\Final.zip"
-    if kwargs["alg"] == "PhiUpdate":
+    if kwargs["alg"] in ["PhiUpdate", "PhiPPO"]:
         phi = get_phi(**kwargs["phi"]) 
         model = ALGO[kwargs["alg"]].load(ckpt_path, env=env, phi=phi)
     else:
