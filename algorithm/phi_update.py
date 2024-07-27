@@ -81,9 +81,11 @@ class PhiUpdate(OnPolicyAlgorithm):
         gamma: float = 0.99,
         gae_lambda: float = 0.95,
         normalize_advantage: bool = True,
+        centralize_advantage: bool = False,
         ent_coef: float = 0.0,
         vf_coef: float = 0.5,
         kl_coef: float = 1,
+        d_target: Union[None, float] = None,
         max_grad_norm: float = 0.5,
         use_sde: bool = False,
         sde_sample_freq: int = -1,
@@ -157,9 +159,11 @@ class PhiUpdate(OnPolicyAlgorithm):
         self.phi = phi
         self.eta = eta
         self.kl_coef = kl_coef
+        self.d_target = d_target
         # self.clip_range = clip_range
         # self.clip_range_vf = clip_range_vf
         self.normalize_advantage = normalize_advantage
+        self.centralize_advantage = centralize_advantage
         self.target_kl = target_kl
 
         if _init_setup_model:
@@ -212,6 +216,8 @@ class PhiUpdate(OnPolicyAlgorithm):
                 # Normalization does not make sense if mini batchsize == 1, see GH issue #325
                 if self.normalize_advantage and len(advantages) > 1:
                     advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+                if self.centralize_advantage and len(advantages) > 1:
+                    advantages = (advantages - advantages.mean())
 
                 # ratio between old and new policy, should be one at the first iteration
                 ratio = th.exp(log_prob - rollout_data.old_log_prob)
@@ -256,7 +262,8 @@ class PhiUpdate(OnPolicyAlgorithm):
                 entropy_losses.append(entropy_loss.item())
                 
                 # KL loss 
-                KL_loss = th.mean(th.exp(log_prob) * (log_prob - rollout_data.old_log_prob))
+                log_ratio = log_prob - rollout_data.old_log_prob
+                KL_loss = th.mean(th.exp(log_ratio) * (log_ratio - 1) + 1)
 
                 loss = policy_loss + self.ent_coef * entropy_loss + self.vf_coef * value_loss + self.kl_coef * KL_loss
 
@@ -265,7 +272,6 @@ class PhiUpdate(OnPolicyAlgorithm):
                 # and discussion in PR #419: https://github.com/DLR-RM/stable-baselines3/pull/419
                 # and Schulman blog: http://joschu.net/blog/kl-approx.html
                 with th.no_grad():
-                    log_ratio = log_prob - rollout_data.old_log_prob
                     approx_kl_div = th.mean((th.exp(log_ratio) - 1) - log_ratio).cpu().numpy()
                     approx_kl_divs.append(approx_kl_div)
 
@@ -274,6 +280,13 @@ class PhiUpdate(OnPolicyAlgorithm):
                     if self.verbose >= 1:
                         print(f"Early stopping at step {epoch} due to reaching max kl: {approx_kl_div:.2f}")
                     break
+                
+                if self.d_target is not None:
+                    KL_loss_scalar = KL_loss.detach().cpu().numpy()
+                    if KL_loss_scalar > self.d_target * 1.5:
+                        self.kl_coef = self.kl_coef * 2
+                    elif KL_loss_scalar < self.d_target / 1.5:
+                        self.kl_coef = self.kl_coef / 2
 
                 # Optimization step
                 self.policy.optimizer.zero_grad()
@@ -299,6 +312,7 @@ class PhiUpdate(OnPolicyAlgorithm):
         self.logger.record("train/explained_variance", explained_var)
         if hasattr(self.policy, "log_std"):
             self.logger.record("train/std", th.exp(self.policy.log_std).mean().item())
+        self.logger.record("train/kl_coef", self.kl_coef)
 
         self.logger.record("train/n_updates", self._n_updates, exclude="tensorboard")
 

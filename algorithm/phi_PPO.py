@@ -89,6 +89,7 @@ class PhiPPO(OnPolicyAlgorithm):
         clip_range: Union[float, Schedule] = 0.2,
         clip_range_vf: Union[None, float, Schedule] = None,        
         normalize_advantage: bool = True,
+        centralize_advantage: bool = False,
         ent_coef: float = 0.0,
         vf_coef: float = 0.5,
         max_grad_norm: float = 0.5,
@@ -166,6 +167,7 @@ class PhiPPO(OnPolicyAlgorithm):
         self.clip_range = clip_range
         self.clip_range_vf = clip_range_vf
         self.normalize_advantage = normalize_advantage
+        self.centralize_advantage = centralize_advantage
         self.target_kl = target_kl
 
         if _init_setup_model:
@@ -223,6 +225,8 @@ class PhiPPO(OnPolicyAlgorithm):
                 # Normalization does not make sense if mini batchsize == 1, see GH issue #325
                 if self.normalize_advantage and len(advantages) > 1:
                     advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+                if self.centralize_advantage and len(advantages) > 1:
+                    advantages = (advantages - advantages.mean())
 
                 # ratio between old and new policy, should be one at the first iteration
                 ratio = th.exp(log_prob - rollout_data.old_log_prob)
@@ -260,7 +264,8 @@ class PhiPPO(OnPolicyAlgorithm):
                 entropy_losses.append(entropy_loss.item())
                 
                 # KL loss 
-                KL_loss = th.mean(th.exp(log_prob) * (log_prob - rollout_data.old_log_prob))
+                log_ratio = log_prob - rollout_data.old_log_prob
+                KL_loss = th.mean(th.exp(log_ratio) * (log_ratio - 1) + 1)
 
                 loss = policy_loss + self.ent_coef * entropy_loss + self.vf_coef * value_loss
 
@@ -269,7 +274,6 @@ class PhiPPO(OnPolicyAlgorithm):
                 # and discussion in PR #419: https://github.com/DLR-RM/stable-baselines3/pull/419
                 # and Schulman blog: http://joschu.net/blog/kl-approx.html
                 with th.no_grad():
-                    log_ratio = log_prob - rollout_data.old_log_prob
                     approx_kl_div = th.mean((th.exp(log_ratio) - 1) - log_ratio).cpu().numpy()
                     approx_kl_divs.append(approx_kl_div)
 

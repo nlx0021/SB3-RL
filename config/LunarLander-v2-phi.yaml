@@ -23,10 +23,12 @@ algo:
   gamma: 0.99
   gae_lambda: 0.95
   normalize_advantage: False
+  centralize_advantage: False
   max_grad_norm: 0.5
   ent_coef: 0
   vf_coef: .1
   kl_coef: 1
+  d_target: null
 
 phi:
   name: "fixed-power"

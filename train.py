@@ -5,6 +5,7 @@ import torch
 import numpy as np
 import gymnasium as gym
 from stable_baselines3.common.env_util import make_vec_env
+from stable_baselines3.common.on_policy_algorithm import OnPolicyAlgorithm
 
 from algorithm import ALGO, PPO, PhiUpdate
 from utils.function_bank import get_phi
@@ -12,7 +13,7 @@ from utils.function_bank import get_phi
 
 if __name__ == '__main__':
     
-    conf_path = "config/Cartpole-v1-PPO.yaml"
+    conf_path = "config/Humanoid-v4-phi.yaml"
     
     with open(conf_path, 'r', encoding="utf-8") as f:
         kwargs = yaml.load(f.read(), Loader=yaml.FullLoader)       
@@ -33,6 +34,7 @@ if __name__ == '__main__':
     # env = gym.make(kwargs["env"]["env_name"])
     env = make_vec_env(**kwargs["env"])
 
+    model: OnPolicyAlgorithm
     algo_id = kwargs["alg"]
     if algo_id in ["PhiUpdate", "PhiPPO"]:
         phi = get_phi(**kwargs["phi"])

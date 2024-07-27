@@ -1,0 +1,28 @@
+world:
+  threads_num: 32
+  exp_dir: "./exp/Humanoid-v4"
+  exp_name: "PPO-baseline"
+
+train:
+  total_timesteps: 10000000
+  log_interval: 10
+
+env:
+  env_id: "Humanoid-v4"
+  n_envs: 32
+
+alg: "PPO"
+
+algo:
+  policy: "MlpPolicy"
+  learning_rate: 0.0003
+  n_steps: 2048
+  batch_size: 64
+  n_epochs: 10
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_range: 0.2
+  normalize_advantage: True
+  max_grad_norm: 0.5
+  ent_coef: 0.001
+  vf_coef: 1

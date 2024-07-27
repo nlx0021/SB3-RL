@@ -1,14 +1,14 @@
 world:
   threads_num: 32
-  exp_dir: "./exp/Cartpole-v1"
-  exp_name: "Phi-power-3-5-normalize-adv"
+  exp_dir: "./exp/Humanoid-v4"
+  exp_name: "Phi-power-3-5-cent-adv-adaptive"
 
 train:
-  total_timesteps: 2000000
+  total_timesteps: 10000000
   log_interval: 10
 
 env:
-  env_id: "CartPole-v1"
+  env_id: "Humanoid-v4"
   n_envs: 32
 
 alg: "PhiUpdate"
@@ -16,19 +16,19 @@ alg: "PhiUpdate"
 algo:
   policy: "MlpPolicy"
   eta: 1
-  learning_rate: 0.0001
-  n_steps: 16
+  learning_rate: 0.0003
+  n_steps: 2048
   batch_size: 64
   n_epochs: 10
   gamma: 0.99
   gae_lambda: 0.95
-  normalize_advantage: True
-  centralize_advantage: False
+  normalize_advantage: False
+  centralize_advantage: True
   max_grad_norm: 0.5
-  ent_coef: 0
+  ent_coef: 0.001
   vf_coef: 1
   kl_coef: 1
-  d_target: null
+  d_target: 0.01
 
 phi:
   name: "power"
