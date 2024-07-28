@@ -1,11 +1,11 @@
 world:
   threads_num: 32
   exp_dir: "./exp/Humanoid-v4"
-  exp_name: "Phi-power-3-5-cent-adv-adaptive"
+  exp_name: "Phi-power-3-5-cent-adv-adaptive-d-1"
 
 train:
   total_timesteps: 10000000
-  log_interval: 10
+  log_interval: 1
 
 env:
   env_id: "Humanoid-v4"
@@ -28,7 +28,7 @@ algo:
   ent_coef: 0.001
   vf_coef: 1
   kl_coef: 1
-  d_target: 0.01
+  d_target: 1
 
 phi:
   name: "power"

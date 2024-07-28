@@ -190,7 +190,7 @@ class PhiUpdate(OnPolicyAlgorithm):
         self._update_learning_rate(self.policy.optimizer)
 
         entropy_losses = []
-        pg_losses, value_losses = [], []
+        pg_losses, value_losses, KL_losses = [], [], []
         # clip_fractions = []
         scale_fractions = []
 
@@ -264,6 +264,7 @@ class PhiUpdate(OnPolicyAlgorithm):
                 # KL loss 
                 log_ratio = log_prob - rollout_data.old_log_prob
                 KL_loss = th.mean(th.exp(log_ratio) * (log_ratio - 1) + 1)
+                KL_losses.append(KL_loss.detach().cpu().numpy())
 
                 loss = policy_loss + self.ent_coef * entropy_loss + self.vf_coef * value_loss + self.kl_coef * KL_loss
 
@@ -280,13 +281,6 @@ class PhiUpdate(OnPolicyAlgorithm):
                     if self.verbose >= 1:
                         print(f"Early stopping at step {epoch} due to reaching max kl: {approx_kl_div:.2f}")
                     break
-                
-                if self.d_target is not None:
-                    KL_loss_scalar = KL_loss.detach().cpu().numpy()
-                    if KL_loss_scalar > self.d_target * 1.5:
-                        self.kl_coef = self.kl_coef * 2
-                    elif KL_loss_scalar < self.d_target / 1.5:
-                        self.kl_coef = self.kl_coef / 2
 
                 # Optimization step
                 self.policy.optimizer.zero_grad()
@@ -298,13 +292,21 @@ class PhiUpdate(OnPolicyAlgorithm):
             self._n_updates += 1
             if not continue_training:
                 break
+            
+            if self.d_target is not None:
+                KL_loss_scalar = np.mean(KL_losses)
+                if KL_loss_scalar > (self.d_target * 1.5):
+                    self.kl_coef = self.kl_coef * 2
+                elif KL_loss_scalar < (self.d_target / 1.5):
+                    self.kl_coef = self.kl_coef / 2
 
         explained_var = explained_variance(self.rollout_buffer.values.flatten(), self.rollout_buffer.returns.flatten())
-
+                
         # Logs
         self.logger.record("train/entropy_loss", np.mean(entropy_losses))
         self.logger.record("train/policy_gradient_loss", np.mean(pg_losses))
         self.logger.record("train/value_loss", np.mean(value_losses))
+        self.logger.record("train/KL_loss", np.mean(KL_losses))
         self.logger.record("train/approx_kl", np.mean(approx_kl_divs))
         # self.logger.record("train/clip_fraction", np.mean(clip_fractions))
         self.logger.record("train/scale_fraction", np.mean(scale_fractions))
