@@ -198,6 +198,7 @@ class PhiUpdate(OnPolicyAlgorithm):
         # train for n_epochs epochs
         for epoch in range(self.n_epochs):
             approx_kl_divs = []
+            approx_kl_losses = []
             # Do a complete pass on the rollout buffer
             for rollout_data in self.rollout_buffer.get(self.batch_size):
                 actions = rollout_data.actions
@@ -265,6 +266,7 @@ class PhiUpdate(OnPolicyAlgorithm):
                 log_ratio = log_prob - rollout_data.old_log_prob
                 KL_loss = th.mean(th.exp(log_ratio) * (log_ratio - 1) + 1)
                 KL_losses.append(KL_loss.detach().cpu().numpy())
+                approx_kl_losses.append(KL_loss.detach().cpu().numpy())
 
                 loss = policy_loss + self.ent_coef * entropy_loss + self.vf_coef * value_loss + self.kl_coef * KL_loss
 
@@ -293,12 +295,12 @@ class PhiUpdate(OnPolicyAlgorithm):
             if not continue_training:
                 break
             
-            if self.d_target is not None:
-                KL_loss_scalar = np.mean(KL_losses)
-                if KL_loss_scalar > (self.d_target * 1.5):
-                    self.kl_coef = self.kl_coef * 2
-                elif KL_loss_scalar < (self.d_target / 1.5):
-                    self.kl_coef = self.kl_coef / 2
+        if self.d_target is not None:
+            KL_loss_scalar = np.mean(approx_kl_losses)
+            if KL_loss_scalar > (self.d_target * 1.5):
+                self.kl_coef = self.kl_coef * 2
+            elif KL_loss_scalar < (self.d_target / 1.5):
+                self.kl_coef = self.kl_coef / 2
 
         explained_var = explained_variance(self.rollout_buffer.values.flatten(), self.rollout_buffer.returns.flatten())
                 

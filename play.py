@@ -10,14 +10,14 @@ from utils.function_bank import get_phi
  
 if __name__ == '__main__':
     
-    conf_path = "exp\\LunarLander-v2\\Phi-power-5-3-baseline\\config.yaml"
+    conf_path = "exp\\Humanoid-v4\\Phi-power-5-3-cent-adv-adaptive-d-1\\config.yaml"
     with open(conf_path, 'r', encoding="utf-8") as f:
         kwargs = yaml.load(f.read(), Loader=yaml.FullLoader)        
     
     torch.set_num_threads(kwargs["world"]["threads_num"])
     env = gym.make(kwargs["env"]["env_id"], render_mode="human") 
     
-    ckpt_path = "exp\\LunarLander-v2\\Phi-power-5-3-baseline\\ckpt\\Final.zip"
+    ckpt_path = "exp\\Humanoid-v4\\Phi-power-5-3-cent-adv-adaptive-d-1\\ckpt\\Final.zip"
     if kwargs["alg"] in ["PhiUpdate", "PhiPPO"]:
         phi = get_phi(**kwargs["phi"]) 
         model = ALGO[kwargs["alg"]].load(ckpt_path, env=env, phi=phi)
